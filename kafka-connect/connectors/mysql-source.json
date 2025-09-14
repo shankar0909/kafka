@@ -1,0 +1,37 @@
+{
+  "name": "mysql-source",
+  "config": {
+    "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+    "tasks.max": "1",
+
+    "database.hostname": "mysql",
+    "database.port": "3306",
+    "database.user": "kafka",
+    "database.password": "kafka",
+
+    "database.server.id": "184054",
+    "topic.prefix": "mysql",
+
+    "database.include.list": "kafka_db",
+    "table.include.list": "kafka_db.customers",
+
+    "schema.history.internal.kafka.bootstrap.servers": "broker:9092",
+    "schema.history.internal.kafka.topic": "schema-changes-mysql",
+
+    "include.schema.changes": "false",
+
+    "transforms": "unwrap",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.drop.tombstones": "false",
+    "transforms.unwrap.delete.handling.mode": "drop",
+
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+
+    "database.connectionTimeZone": "UTC",
+    "database.ssl.mode": "disabled",
+    "database.allowPublicKeyRetrieval": "true",
+    "database.useSSL": "false",
+    "database.serverTimezone": "UTC"
+  }
+}

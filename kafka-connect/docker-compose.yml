@@ -1,0 +1,152 @@
+version: '3.8'
+
+services:
+  broker:
+    image: confluentinc/cp-kafka:7.6.1
+    container_name: broker
+    hostname: broker
+    ports:
+      - "9092:9092" #internal broker port
+      - "9093:9093" #controller port
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://broker:9092,CONTROLLER://broker:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@broker:9093
+      CLUSTER_ID: "4L6g3nShT-eMCtK--X86sw"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "broker:9092"]
+      interval: 5s
+      retries: 12 # 1 minute total
+
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:7.6.1
+    hostname: kafka-connect
+    container_name: kafka-connect
+    depends_on:
+      broker:
+        condition: service_healthy
+      mysql:
+        condition: service_started
+      postgres:
+        condition: service_started
+    ports:
+      - "8083:8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: broker:9092
+      CONNECT_REST_PORT: 8083
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_GROUP_ID: compose-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_PLUGIN_PATH: '/usr/share/java,/usr/share/confluent-hub-components'
+      CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+    volumes:
+      - ./connectors:/tmp/connectors
+      - ./mysql-init:/tmp/mysql-init
+      - ./plugins:/usr/share/confluent-hub-components
+
+    command:
+      - bash
+      - -c
+      - |
+        echo 'Starting Kafka Connect...'
+        # Optional: install plugins before run
+        # confluent-hub install --no-prompt --component-dir /usr/share/confluent-hub-components debezium/debezium-connector-mysql:2.7.2.Final
+        # confluent-hub install --no-prompt --component-dir /usr/share/confluent-hub-components confluentinc/kafka-connect-jdbc:10.8.4
+
+        /etc/confluent/docker/run &
+
+        echo "Waiting for Kafka Connect REST API..."
+        until curl -s http://localhost:8083/connectors > /dev/null; do
+          echo "Kafka Connect not ready yet..."
+          sleep 5
+        done
+
+        echo "Registering connectors..."
+        for f in /tmp/connectors/*.json; do
+          if [ -f "$$f" ]; then
+            echo "Registering connector: $$f"
+            resp=$$(curl -s -o /tmp/resp.txt -w "%{http_code}" \
+              -X POST -H "Content-Type: application/json" \
+              --data "@$$f" \
+              http://localhost:8083/connectors)
+
+            if [ "$$resp" -eq 409 ]; then
+              echo "Connector already exists, skipping: $$f"
+            elif [ "$$resp" -ge 200 ] && [ "$$resp" -lt 300 ]; then
+              echo "Connector created successfully: $$f"
+            else
+              echo "Failed to register connector from $$f (HTTP $$resp)"
+              cat /tmp/resp.txt
+            fi
+          fi
+        done
+
+        wait -n
+
+
+  mysql:
+    image: mysql:8.0
+    hostname: mysql
+    container_name: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_USER: kafka
+      MYSQL_PASSWORD: kafka
+      MYSQL_DATABASE: kafka_db
+      MYSQL_DEFAULT_AUTHENTICATION_PLUGIN: mysql_native_password
+    volumes:
+      - ./mysql-init:/docker-entrypoint-initdb.d
+      - ./mysql-init/my.cnf:/etc/mysql/conf.d/my.cnf
+
+  postgres:
+    image: postgres:13
+    hostname: postgres
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: kafka
+      POSTGRES_PASSWORD: kafka
+      POSTGRES_DB: kafka_db
+    volumes:
+      - ./postgres-init:/docker-entrypoint-initdb.d
+
+  kafkacat:
+    image: confluentinc/cp-kafkacat:7.0.1
+    container_name: kafkacat
+    depends_on:
+      - broker
+    entrypoint: ['sleep', 'infinity']
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    ports:
+      - "8080:8080"
+    depends_on:
+      - broker
+      - kafka-connect
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: broker:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: ""
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: connect-cluster
+      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083  
