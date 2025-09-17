@@ -5,10 +5,15 @@ This app will use AVRO library for serialization & deserialization of events by 
 ## Application Flow
 
 -> Event Recieved
+
 -> Serialized using AVRO and published on the input-topic
+
 -> Consumer will pull the event, and deserialize using AVRO 
+
 -> Enrich the event 
+
 -> Serialize and publish the event on the output-topic
+
 
 
 ##Bootstrap
