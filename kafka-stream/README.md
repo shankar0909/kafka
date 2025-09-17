@@ -7,6 +7,19 @@
 
 3. Visit UI at http://localhost:8082 to monitor broker & topic
 
+4. Register optional schema using:
+
+
+    curl --location 'http://localhost:8081/subjects/input-topic-value/versions' \
+--header 'Content-Type: application/json' \
+--data '{
+    "schemaType": "AVRO",
+    "schema": "{\"type\":\"record\",\"name\":\"UserEvent\",\"namespace\":\"com.kafka.kafka_stream.model\",\"fields\":[{\"name\":\"userId\",\"type\":\"string\"},{\"name\":\"action\",\"type\":\"string\"}]}"
+  }'
+
+
+
+
 4. Publish  avro input message schema in schema registry through CLI:
 
 First publish the Schema:
@@ -53,17 +66,4 @@ POST /subjects/enriched-topic-value/versions
 
 
 ###
-
-5. publish the below sample message on input-topic. LEverage EventController at :
-
-curl --location 'http://localhost:8080/send' \
---header 'Content-Type: application/json' \
---data '{
-    "userId":"0909",
-    "action":"login"
-}'
-
-
-
-
 5. Recieve the enriched message at output topic and in application logs.
