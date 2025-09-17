@@ -16,7 +16,7 @@ This app will use AVRO library for serialization & deserialization of events by 
 
 
 
-##Bootstrap
+## Bootstrap
 
 1. Bootstrap Kafka cluster by running below command:
     docker compose up -d
