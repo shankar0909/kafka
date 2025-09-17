@@ -3,10 +3,13 @@
 1. Bootstrap Kafka cluster by running below command:
     docker compose up -d
 
+###
 2. Start springboot application. It will create couple of topics(input-topic & output-topic) behind the scene.
 
+###
 3. Visit UI at http://localhost:8082 to monitor broker & topic
 
+###
 4. Register optional schema using:
 
 
@@ -19,8 +22,8 @@
 
 
 
-
-4. Publish  avro input message schema in schema registry through CLI:
+###
+5. Publish  avro input message schema in schema registry through CLI:
 
 First publish the Schema:
 
@@ -48,13 +51,16 @@ Then put EVENTS:
 .
 .
 
+
+###
+6. Recieve the enriched message at output topic and in application logs.
   
 
 
 
 ###
 
-# Sample call to register the any schema
+# Sample call to register any schema
 POST /subjects/enriched-topic-value/versions
 { "schema": "<enriched schema>" }
 
@@ -64,6 +70,3 @@ POST /subjects/enriched-topic-value/versions
 [ Avro binary-encoded payload ]
 
 
-
-###
-5. Recieve the enriched message at output topic and in application logs.
