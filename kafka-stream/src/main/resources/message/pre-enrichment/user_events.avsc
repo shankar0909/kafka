@@ -1,0 +1,9 @@
+{
+  "type": "record",
+  "name": "UserEvent",
+  "namespace": "com.kafka.kafka_stream.model",
+  "fields": [
+    {"name": "userId", "type": "string"},
+    {"name": "action", "type": "string"}
+  ]
+}

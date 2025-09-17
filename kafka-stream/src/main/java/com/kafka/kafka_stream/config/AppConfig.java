@@ -8,13 +8,13 @@ import org.springframework.context.annotation.Configuration;
 public class AppConfig {
 
     @Bean
-    public NewTopic greetingSourceTopic() {
-        return new NewTopic("greetings-source", 2, (short) 1);
+    public NewTopic inputTopic() {
+        return new NewTopic("input-topic", 2, (short) 1);
     }
 
     @Bean
-    public NewTopic greetingOutputTopic() {
-        return new NewTopic("greetings-output", 2, (short) 1);
+    public NewTopic outputTopic() {
+        return new NewTopic("output-topic", 2, (short) 1);
     }
 
 }

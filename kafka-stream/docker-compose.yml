@@ -44,14 +44,41 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: kafka-ui
+  # kafka-ui:
+  #   image: provectuslabs/kafka-ui:latest
+  #   container_name: kafka-ui
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - broker
+  #   environment:
+  #     KAFKA_CLUSTERS_0_NAME: streams-cluster
+  #     KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: broker:29092
+  #     KAFKA_CLUSTERS_0_ZOOKEEPER: ""
+
+  redpanda-console:
+    image: docker.redpanda.com/redpandadata/console:latest
+    container_name: redpanda-console
     ports:
-      - "8080:8080"
+      - "8082:8082"
+    environment:
+      KAFKA_BROKERS: broker:29092
+      SCHEMAREGISTRY_ENABLED: "true"
+      SCHEMAREGISTRY_URLS: http://schema-registry:8081
     depends_on:
       - broker
+      - schema-registry
+
+    
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.6.1
+    container_name: schema-registry
+    depends_on:
+      - broker
+    ports:
+      - "8081:8081"
     environment:
-      KAFKA_CLUSTERS_0_NAME: streams-cluster
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: broker:29092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: ""
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMAREGISTRY_ENABLED: "true"
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: broker:29092  

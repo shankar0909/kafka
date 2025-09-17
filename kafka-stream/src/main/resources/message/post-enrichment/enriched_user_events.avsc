@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "EnrichedUserEvent",
+  "namespace": "com.kafka.kafka_stream.model", 
+  "fields": [
+    {"name": "userId", "type": "string"},
+    {"name": "action", "type": "string"},
+    {"name": "timestamp", "type": "long"},
+    {"name": "source", "type": "string"}
+  ]
+}
