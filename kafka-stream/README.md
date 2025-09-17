@@ -13,13 +13,13 @@
 4. Register optional schema using:
 
 
-    curl --location 'http://localhost:8081/subjects/input-topic-value/versions' \
---header 'Content-Type: application/json' \
---data '{
-    "schemaType": "AVRO",
-    "schema": "{\"type\":\"record\",\"name\":\"UserEvent\",\"namespace\":\"com.kafka.kafka_stream.model\",\"fields\":[{\"name\":\"userId\",\"type\":\"string\"},{\"name\":\"action\",\"type\":\"string\"}]}"
-  }'
-
+            curl --location 'http://localhost:8081/subjects/input-topic-value/versions' \
+        --header 'Content-Type: application/json' \
+        --data '{
+            "schemaType": "AVRO",
+            "schema": "{\"type\":\"record\",\"name\":\"UserEvent\",\"namespace\":\"com.kafka.kafka_stream.model\",\"fields\":[{\"name\":\"userId\",\"type\":\"string\"},{\"name\":\"action\",\"type\":\"string\"}]}"
+          }'
+        
 
 
 ###
@@ -27,29 +27,29 @@
 
 First publish the Schema:
 
-kafka-avro-console-producer \
-  --broker-list broker:29092 \
-  --topic input-topic \
-  --property schema.registry.url=http://schema-registry:8081 \
-  --property value.schema='{
-     "type":"record",
-     "name":"UserEvent",
-     "namespace":"com.kafka.kafka_stream.model",
-     "fields":[
-       {"name":"userId","type":"string"},
-       {"name":"action","type":"string"}
-     ]
-  }'
+            kafka-avro-console-producer \
+              --broker-list broker:29092 \
+              --topic input-topic \
+              --property schema.registry.url=http://schema-registry:8081 \
+              --property value.schema='{
+                 "type":"record",
+                 "name":"UserEvent",
+                 "namespace":"com.kafka.kafka_stream.model",
+                 "fields":[
+                   {"name":"userId","type":"string"},
+                   {"name":"action","type":"string"}
+                 ]
+              }'
 
 
-Then put EVENTS:
-
-
-{"userId":"u123","action":"login"}
-{"userId":"u456","action":"purchase"}
-.
-.
-.
+            Then put EVENTS:
+            
+            
+            {"userId":"u123","action":"login"}
+            {"userId":"u456","action":"purchase"}
+            .
+            .
+            .
 
 
 ###
