@@ -7,14 +7,35 @@
 
 3. Visit UI at http://localhost:8082 to monitor broker & topic
 
-4. Publish  avro input message schema in schema registry:
+4. Publish  avro input message schema in schema registry through CLI:
 
-   curl --location 'http://localhost:8081/subjects/input-topic-value/versions' \
---header 'Content-Type: application/json' \
---data '{
-    "schemaType": "AVRO",
-    "schema": "{\"type\":\"record\",\"name\":\"UserEvent\",\"namespace\":\"com.kafka.kafka_stream.model\",\"fields\":[{\"name\":\"userId\",\"type\":\"string\"},{\"name\":\"action\",\"type\":\"string\"}]}"
+First publish the Schema:
+
+kafka-avro-console-producer \
+  --broker-list broker:29092 \
+  --topic input-topic \
+  --property schema.registry.url=http://schema-registry:8081 \
+  --property value.schema='{
+     "type":"record",
+     "name":"UserEvent",
+     "namespace":"com.kafka.kafka_stream.model",
+     "fields":[
+       {"name":"userId","type":"string"},
+       {"name":"action","type":"string"}
+     ]
   }'
+
+
+Then put EVENTS:
+
+
+{"userId":"u123","action":"login"}
+{"userId":"u456","action":"purchase"}
+.
+.
+.
+
+  
 
 
 
