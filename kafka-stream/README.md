@@ -4,11 +4,13 @@ This app will use AVRO library for serialization & deserialization of events by 
 
 ## Application Flow
 
--> Event Recieved
+-> Event Recieved in JSON format
 
--> Serialized using AVRO and published on the input-topic
+-> Transformer will transform it into the AVRO format
 
--> Consumer will pull the event, and deserialize using AVRO 
+-> Serialized using AVRO serde and published on the input-topic
+
+-> Consumer will pull the event, and deserialize using AVRO serde
 
 -> Enrich the event 
 
@@ -41,37 +43,19 @@ This app will use AVRO library for serialization & deserialization of events by 
 
 
 ###
-5. Publish  avro input message schema in schema registry through CLI:
+5. Use REST endpoint to send the JSON message: This message will be transformed to the AVRO message and delivered to the input-topic.
 
-First publish the Schema:
+   curl --location 'http://localhost:8080/api/events' \
+--header 'Content-Type: application/json' \
+--data '{
+    "userId":"2722",
+    "action":"inq"
+}'
 
-            kafka-avro-console-producer \
-              --broker-list broker:29092 \
-              --topic input-topic \
-              --property schema.registry.url=http://schema-registry:8081 \
-              --property value.schema='{
-                 "type":"record",
-                 "name":"UserEvent",
-                 "namespace":"com.kafka.kafka_stream.model",
-                 "fields":[
-                   {"name":"userId","type":"string"},
-                   {"name":"action","type":"string"}
-                 ]
-              }'
-
-
-            Then put EVENTS:
-            
-            
-            {"userId":"u123","action":"login"}
-            {"userId":"u456","action":"purchase"}
-            .
-            .
-            .
 
 
 ###
-6. Recieve the enriched message at output topic and in application logs.
+6. Read the message from input-topic, ENRICH it and deliver it to the output-topic for consumer to consume.
   
 
 
