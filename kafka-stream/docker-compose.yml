@@ -60,7 +60,7 @@ services:
     image: docker.redpanda.com/redpandadata/console:latest
     container_name: redpanda-console
     ports:
-      - "8082:8082"
+      - "8082:8080"
     environment:
       KAFKA_BROKERS: broker:29092
       SCHEMAREGISTRY_ENABLED: "true"
